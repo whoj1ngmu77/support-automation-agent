@@ -1,4 +1,5 @@
 from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.types import interrupt
 
 from src.state import SupportState
 from src.llm import classify_intent_llm, generate_agent_response, answer_from_memory
@@ -6,20 +7,33 @@ from src.rag import KnowledgeBase
 
 _kb = KnowledgeBase()
 
+HIGH_RISK_KEYWORDS = [
+    "refund", "cancel my subscription", "cancel subscription", "close my account",
+    "account closure", "compensation", "escalate to management", "speak to a manager",
+]
+
 
 def classify_intent_node(state: SupportState) -> dict:
     intent = classify_intent_llm(state["query"])
     return {"intent": intent}
 
 
+def _is_high_risk(query: str, intent: str) -> bool:
+    q = query.lower()
+    if intent == "Billing" and ("refund" in q or "cancel" in q):
+        return True
+    return any(kw in q for kw in HIGH_RISK_KEYWORDS)
+
+
 def _department_agent(department: str, state: SupportState) -> dict:
     context = _kb.retrieve(state["query"], department=department)
     response = generate_agent_response(department, state["query"], context)
+    requires_approval = _is_high_risk(state["query"], department)
     return {
         "retrieved_context": context,
         "draft_response": response,
-        "final_response": response,
-        "messages": [HumanMessage(content=state["query"]), AIMessage(content=response)],
+        "requires_approval": requires_approval,
+        "approval_status": "pending" if requires_approval else "not_required",
     }
 
 
@@ -48,4 +62,32 @@ def memory_recall_node(state: SupportState) -> dict:
     return {
         "final_response": answer,
         "messages": [HumanMessage(content=state["query"]), AIMessage(content=answer)],
+    }
+
+
+def human_approval_node(state: SupportState) -> dict:
+    decision = interrupt({
+        "reason": "High-risk request requires supervisor approval",
+        "customer": state["customer_name"],
+        "query": state["query"],
+        "draft_response": state["draft_response"],
+    })
+    approved = decision.get("decision") == "approve"
+    return {
+        "approval_status": "approved" if approved else "rejected",
+        "approval_notes": decision.get("notes", ""),
+    }
+
+
+def finalize_response_node(state: SupportState) -> dict:
+    if state.get("approval_status") == "rejected":
+        final = (
+            f"Hi {state['customer_name']}, your request needs further verification "
+            f"before we can proceed. Note: {state.get('approval_notes', '')}"
+        )
+    else:
+        final = state["draft_response"]
+    return {
+        "final_response": final,
+        "messages": [HumanMessage(content=state["query"]), AIMessage(content=final)],
     }

@@ -12,6 +12,8 @@ from src.nodes import (
     billing_agent_node,
     account_agent_node,
     memory_recall_node,
+    human_approval_node,
+    finalize_response_node,
 )
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "memory.db")
@@ -27,6 +29,10 @@ def route_by_intent(state: SupportState) -> str:
     }.get(state["intent"], "technical_agent")
 
 
+def route_by_approval(state: SupportState) -> str:
+    return "human_approval" if state.get("requires_approval") else "finalize_response"
+
+
 def build_graph():
     graph = StateGraph(SupportState)
 
@@ -36,6 +42,8 @@ def build_graph():
     graph.add_node("billing_agent", billing_agent_node)
     graph.add_node("account_agent", account_agent_node)
     graph.add_node("memory_recall", memory_recall_node)
+    graph.add_node("human_approval", human_approval_node)
+    graph.add_node("finalize_response", finalize_response_node)
 
     graph.add_edge(START, "classify_intent")
 
@@ -51,8 +59,16 @@ def build_graph():
         },
     )
 
-    for node in ["sales_agent", "technical_agent", "billing_agent", "account_agent", "memory_recall"]:
-        graph.add_edge(node, END)
+    for dept in ["sales_agent", "technical_agent", "billing_agent", "account_agent"]:
+        graph.add_conditional_edges(
+            dept,
+            route_by_approval,
+            {"human_approval": "human_approval", "finalize_response": "finalize_response"},
+        )
+
+    graph.add_edge("human_approval", "finalize_response")
+    graph.add_edge("memory_recall", END)
+    graph.add_edge("finalize_response", END)
 
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     checkpointer = SqliteSaver(conn)
