@@ -2,7 +2,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.types import interrupt
 
 from src.state import SupportState
-from src.llm import classify_intent_llm, generate_agent_response, answer_from_memory
+from src.llm import classify_intent_llm, generate_agent_response, answer_from_memory, supervisor_review
 from src.rag import KnowledgeBase
 
 _kb = KnowledgeBase()
@@ -86,7 +86,8 @@ def finalize_response_node(state: SupportState) -> dict:
             f"before we can proceed. Note: {state.get('approval_notes', '')}"
         )
     else:
-        final = state["draft_response"]
+        reviewed = supervisor_review(state["draft_response"])
+        final = f"Hi {state['customer_name']}, {reviewed}"
     return {
         "final_response": final,
         "messages": [HumanMessage(content=state["query"]), AIMessage(content=final)],

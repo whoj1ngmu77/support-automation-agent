@@ -31,7 +31,9 @@ def generate_agent_response(department: str, query: str, context: list[str]) -> 
         f"Customer query: {query}\n\n"
         f"Relevant documentation:\n{context_text}\n\n"
         "Write a concise, helpful, professional response to the customer, "
-        "using only the documentation above. Do not invent policy details."
+        "using only the documentation above. Do not invent policy details. "
+        "Do not include a greeting like 'Hello' or 'Dear Customer' — start directly "
+        "with the substance of the response, since a greeting is added separately."
     )
     response = llm.invoke(prompt)
     return response.content
@@ -44,6 +46,18 @@ def answer_from_memory(query: str, history_text: str) -> str:
         f"Conversation history so far:\n{history_text}\n\n"
         f"Customer now asks: {query}\n"
         "Answer using only the conversation history above."
+    )
+    response = llm.invoke(prompt)
+    return response.content
+
+
+def supervisor_review(draft: str) -> str:
+    prompt = (
+        "You are a Supervisor agent reviewing a customer support response before it's sent. "
+        "Improve clarity, correctness, and tone if needed. Do NOT include any greeting "
+        "(no 'Hello', 'Dear Customer', 'Hi') since one is added separately. Start directly "
+        "with the substance of the response. Return only the improved response, nothing else.\n\n"
+        f"Draft: {draft}"
     )
     response = llm.invoke(prompt)
     return response.content
