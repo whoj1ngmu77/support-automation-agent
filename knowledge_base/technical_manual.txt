@@ -1,0 +1,16 @@
+TECHNICAL MANUAL - ABC Technologies Platform
+
+APPLICATION CRASHES ON FILE UPLOAD
+Known issue: files larger than 25 MB or with special characters in the filename
+can cause the upload module to crash on versions prior to 4.2.1.
+Fix: update the app, rename the file to remove special characters, compress
+files larger than 25 MB, or use the desktop bulk upload tool (supports up to 500 MB).
+
+LOGIN PROBLEMS
+Common causes: expired session tokens, browser cache issues, SSO misconfiguration.
+Fix: clear browser cache, try incognito mode, use Forgot Password to reset,
+verify SSO identity provider session is active.
+
+INSTALLATION ISSUES
+Windows requires Windows 10+, .NET 6.0 runtime, 4 GB RAM minimum.
+Mac requires macOS 12+, both Apple Silicon and Intel supported.

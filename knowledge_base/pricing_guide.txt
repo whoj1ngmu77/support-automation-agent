@@ -1,0 +1,15 @@
+PRICING GUIDE - ABC Technologies
+
+1. Starter Plan - $19/month (or $190/year, save ~17%)
+   Up to 5 users, core modules, email support, 5 GB storage.
+
+2. Professional Plan - $49/month (or $490/year, save ~17%)
+   Up to 25 users, full CRM, priority support, 50 GB storage, API access.
+
+3. Business Plan - $99/month (or $990/year, save ~17%)
+   Up to 100 users, advanced analytics, priority phone support, 250 GB storage.
+
+4. Enterprise Plan - Custom pricing
+   Unlimited users, custom integrations, SSO, 24/7 support, dedicated account manager.
+
+All plans except Enterprise include a 14-day free trial, no credit card required.

@@ -1,0 +1,14 @@
+FREQUENTLY ASKED QUESTIONS - ABC Technologies
+
+Q: How do I reset my account password?
+A: Go to the login page, click "Forgot Password", follow the emailed reset link.
+Links expire after 30 minutes.
+
+Q: How do I update my profile information?
+A: Account Settings > Profile, edit details, click Save.
+
+Q: How do I activate or deactivate my account?
+A: Deactivation is under Account Settings > Account Status. Reversible within 90 days.
+
+Q: How do I change my subscription plan?
+A: Billing > Subscription > Change Plan. Upgrades apply immediately with prorated billing.
