@@ -35,3 +35,15 @@ def generate_agent_response(department: str, query: str, context: list[str]) -> 
     )
     response = llm.invoke(prompt)
     return response.content
+
+
+def answer_from_memory(query: str, history_text: str) -> str:
+    if not history_text.strip():
+        return "I don't see any previous interactions on file for you yet."
+    prompt = (
+        f"Conversation history so far:\n{history_text}\n\n"
+        f"Customer now asks: {query}\n"
+        "Answer using only the conversation history above."
+    )
+    response = llm.invoke(prompt)
+    return response.content

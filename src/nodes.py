@@ -1,5 +1,7 @@
+from langchain_core.messages import HumanMessage, AIMessage
+
 from src.state import SupportState
-from src.llm import classify_intent_llm, generate_agent_response
+from src.llm import classify_intent_llm, generate_agent_response, answer_from_memory
 from src.rag import KnowledgeBase
 
 _kb = KnowledgeBase()
@@ -16,7 +18,8 @@ def _department_agent(department: str, state: SupportState) -> dict:
     return {
         "retrieved_context": context,
         "draft_response": response,
-        "final_response": response,   # placeholder until Phase 7 (supervisor)
+        "final_response": response,
+        "messages": [HumanMessage(content=state["query"]), AIMessage(content=response)],
     }
 
 
@@ -37,5 +40,12 @@ def account_agent_node(state: SupportState) -> dict:
 
 
 def memory_recall_node(state: SupportState) -> dict:
-    # Placeholder — replaced with real SQLite-backed recall in Phase 5.
-    return {"final_response": f"[Memory placeholder] Got your query: {state['query']}"}
+    history_text = "\n".join(
+        f"{'Customer' if isinstance(m, HumanMessage) else 'Agent'}: {m.content}"
+        for m in state.get("messages", [])
+    )
+    answer = answer_from_memory(state["query"], history_text)
+    return {
+        "final_response": answer,
+        "messages": [HumanMessage(content=state["query"]), AIMessage(content=answer)],
+    }

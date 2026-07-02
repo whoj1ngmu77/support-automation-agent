@@ -1,4 +1,8 @@
+import os
+import sqlite3
+
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from src.state import SupportState
 from src.nodes import (
@@ -9,6 +13,8 @@ from src.nodes import (
     account_agent_node,
     memory_recall_node,
 )
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "memory.db")
 
 
 def route_by_intent(state: SupportState) -> str:
@@ -48,4 +54,7 @@ def build_graph():
     for node in ["sales_agent", "technical_agent", "billing_agent", "account_agent", "memory_recall"]:
         graph.add_edge(node, END)
 
-    return graph.compile()
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    checkpointer = SqliteSaver(conn)
+
+    return graph.compile(checkpointer=checkpointer)
